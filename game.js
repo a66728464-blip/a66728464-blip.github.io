@@ -1,21 +1,21 @@
 /* ========================================
-   繧ｯ繝ｪ繝�き繝ｼ繧ｲ繝ｼ繝  - 繧ｲ繝ｼ繝 繝ｭ繧ｸ繝�け
+   クリッカーゲーム - ゲームロジック
    ======================================== */
 
 // ========================================
-// 繧ｲ繝ｼ繝 繧ｹ繝��繝�
+// ゲームステート
 // ========================================
 const state = {
   score: 0,
   totalClicks: 0,
   clickMin: 1,
   clickMax: 5,
-  clickRate: 1,       // 蜉 邂怜�咲紫
-  clickMult: 1,       // 荵礼ｮ怜�咲紫
+  clickRate: 1,       // 加算倍率
+  clickMult: 1,       // 乗算倍率
   rebirthCount: 0,
-  rebirthBonus: 1,    // 霆｢逕溘�繝ｼ繝翫せ荵礼ｮ�
+  rebirthBonus: 1,    // 転生ボーナス乗算
 
-  // 繧｢繝��繧ｰ繝ｬ繝ｼ繝峨Ξ繝吶Ν
+  // アップグレードレベル
   upgrades: {
     max: { level: 0, baseCost: 10, costMult: 1.5 },
     min: { level: 0, baseCost: 10, costMult: 1.5 },
@@ -32,22 +32,22 @@ const state = {
   robotActive: false,
   robotInterval: null,
 
-  // 繧ｿ繧､繝槭�
+  // タイマー
   timerSeconds: 0,
   timerInterval: null,
 
-  // 繝励Ο繧ｰ繝ｬ繧ｹ
+  // プログレス
   progressTarget: 1000,
   progressCurrent: 0,
   progressStage: 0,
 
-  // 繧ｯ繝ｪ繝�ぅ繧ｫ繝ｫ
+  // クリティカル
   criticalChance: 0,   // %
   bonusMultiplier: 1,
 };
 
 // ========================================
-// DOM隕∫ｴ 
+// DOM要素
 // ========================================
 const els = {
   scoreDisplay: document.getElementById('scoreDisplay'),
@@ -57,14 +57,14 @@ const els = {
   timerDisplay: document.getElementById('timerDisplay'),
   notification: document.getElementById('notification'),
 
-  // 繝代ロ繝ｫ
+  // パネル
   leftPanel: document.getElementById('leftPanel'),
   panelTitle: document.getElementById('panelTitle'),
   switchPanel: document.getElementById('switchPanel'),
   robotPanel: document.getElementById('robotPanel'),
   shopPanel: document.getElementById('shopPanel'),
 
-  // 繧｢繝��繧ｰ繝ｬ繝ｼ繝峨Ξ繝吶Ν
+  // アップグレードレベル
   maxLevel: document.getElementById('maxLevel'),
   minLevel: document.getElementById('minLevel'),
   rateLevel: document.getElementById('rateLevel'),
@@ -75,7 +75,7 @@ const els = {
   criticalLevel: document.getElementById('criticalLevel'),
   bonusLevel: document.getElementById('bonusLevel'),
 
-  // 繧｢繝��繧ｰ繝ｬ繝ｼ繝峨さ繧ｹ繝�
+  // アップグレードコスト
   maxCost: document.getElementById('maxCost'),
   minCost: document.getElementById('minCost'),
   rateCost: document.getElementById('rateCost'),
@@ -86,7 +86,7 @@ const els = {
   criticalCost: document.getElementById('criticalCost'),
   bonusCost: document.getElementById('bonusCost'),
 
-  // 繧｢繝��繧ｰ繝ｬ繝ｼ繝峨�繧ｿ繝ｳ
+  // アップグレードボタン
   upgradeMax: document.getElementById('upgradeMax'),
   upgradeMin: document.getElementById('upgradeMin'),
   upgradeRate: document.getElementById('upgradeRate'),
@@ -102,19 +102,19 @@ const els = {
   robotIndicator: document.getElementById('robotIndicator'),
   robotStateText: document.getElementById('robotStateText'),
 
-  // 繧ｵ繧､繝峨�繧ｿ繝ｳ
+  // サイドボタン
   btnSwitch: document.getElementById('btnSwitch'),
   btnRobot: document.getElementById('btnRobot'),
   btnShop: document.getElementById('btnShop'),
   btnMystery: document.getElementById('btnMystery'),
   menuBtn: document.getElementById('menuBtn'),
 
-  // 繝峨ャ繝�
+  // ドット
   dots: document.querySelectorAll('.dot'),
 };
 
 // ========================================
-// 繝ｦ繝ｼ繝�ぅ繝ｪ繝�ぅ
+// ユーティリティ
 // ========================================
 function formatNumber(n) {
   if (n >= 1e12) return (n / 1e12).toFixed(1) + 'T';
@@ -134,13 +134,13 @@ function randInt(min, max) {
 }
 
 // ========================================
-// 繧ｹ繧ｳ繧｢險育ｮ�
+// スコア計算
 // ========================================
 function calculateClick() {
   const base = randInt(state.clickMin, state.clickMax);
   let value = (base + state.clickRate) * state.clickMult * state.rebirthBonus * state.bonusMultiplier;
 
-  // 繧ｯ繝ｪ繝�ぅ繧ｫ繝ｫ蛻､螳�
+  // クリティカル判定
   const isCritical = Math.random() * 100 < state.criticalChance;
   if (isCritical) {
     value *= 3;
@@ -150,7 +150,7 @@ function calculateClick() {
 }
 
 // ========================================
-// 繧ｯ繝ｪ繝�け蜃ｦ逅�
+// クリック処理
 // ========================================
 function handleClick(e) {
   const { value, isCritical } = calculateClick();
@@ -163,12 +163,12 @@ function handleClick(e) {
   showClickEffect(e, value, isCritical);
   updateUpgradeButtons();
 
-  // 繝懊ち繝ｳ繝代Ν繧ｹ
+  // ボタンパルス
   els.mainButton.classList.remove('pulse');
   void els.mainButton.offsetWidth;
   els.mainButton.classList.add('pulse');
 
-  // 繧ｹ繧ｳ繧｢繝舌Φ繝�
+  // スコアバンプ
   const scoreEl = document.querySelector('.score-display');
   scoreEl.classList.remove('bump');
   void scoreEl.offsetWidth;
@@ -178,10 +178,10 @@ function handleClick(e) {
 }
 
 function getValueImage(value, isCritical) {
-  // DATA/1.png = 繝斐Φ繧ｯ�域怙螟ｧ蛟､/繧ｯ繝ｪ繝�ぅ繧ｫ繝ｫ��
-  // DATA/2.png = 繧ｰ繝ｪ繝ｼ繝ｳ��1000縲�9999��
-  // DATA/3.png = 邏ｫ�亥渕譛ｬ蛟､縲√��99��
-  // DATA/4.png = 繧ｴ繝ｼ繝ｫ繝会ｼ�100縲�999��
+  // DATA/1.png = ピンク（最大値/クリティカル）
+  // DATA/2.png = グリーン（1000〜9999）
+  // DATA/3.png = 紫（基本値、〜99）
+  // DATA/4.png = ゴールド（100〜999）
   if (isCritical) return 'DATA/1.png';
   if (value >= 10000) return 'DATA/1.png';
   if (value >= 1000) return 'DATA/2.png';
@@ -190,7 +190,7 @@ function getValueImage(value, isCritical) {
 }
 
 function showClickEffect(e, value, isCritical) {
-  // 繝輔Ο繝ｼ繝医リ繝ｳ繝舌���NG逕ｻ蜒上ｒ菴ｿ逕ｨ��
+  // フロートナンバー（PNG画像を使用）
   const num = document.createElement('div');
   num.className = 'click-number';
 
@@ -208,7 +208,7 @@ function showClickEffect(e, value, isCritical) {
     x = e.clientX - rect.left;
     y = e.clientY - rect.top;
   } else {
-    // ROBOT逕ｨ�壹Λ繝ｳ繝�繝 菴咲ｽｮ
+    // ROBOT用：ランダム位置
     x = rect.width / 2 + randInt(-60, 60);
     y = rect.height / 2 + randInt(-40, 40);
   }
@@ -219,7 +219,7 @@ function showClickEffect(e, value, isCritical) {
 
   setTimeout(() => num.remove(), 1200);
 
-  // 繝ｪ繝��繝ｫ
+  // リップル
   const ripple = document.createElement('div');
   ripple.className = 'click-ripple';
   ripple.style.left = (x - 5) + 'px';
@@ -229,7 +229,7 @@ function showClickEffect(e, value, isCritical) {
 }
 
 // ========================================
-// UI譖ｴ譁ｰ
+// UI更新
 // ========================================
 function updateScoreDisplay() {
   els.scoreDisplay.textContent = formatNumber(state.score);
@@ -270,10 +270,10 @@ function updateProgress() {
     state.progressStage++;
     if (state.progressStage > 4) state.progressStage = 0;
     state.progressTarget = Math.floor(state.progressTarget * 1.5);
-    showNotification('脂 繧ｹ繝��繧ｸ繧ｯ繝ｪ繧｢�∵ｬ｡縺ｮ逶ｮ讓�: ' + formatNumber(state.progressTarget));
+    showNotification('🎉 ステージクリア！次の目標: ' + formatNumber(state.progressTarget));
   }
 
-  // 繝峨ャ繝域峩譁ｰ
+  // ドット更新
   els.dots.forEach((dot, i) => {
     if (i <= state.progressStage) {
       dot.classList.add('active');
@@ -284,19 +284,19 @@ function updateProgress() {
 }
 
 // ========================================
-// 繧｢繝��繧ｰ繝ｬ繝ｼ繝牙�逅�
+// アップグレード処理
 // ========================================
 function purchaseUpgrade(upgradeName) {
   const cost = getCost(upgradeName);
   if (state.score < cost) {
-    showNotification('笞 �� 繧ｹ繧ｳ繧｢縺瑚ｶｳ繧翫∪縺帙ｓ��');
+    showNotification('⚠️ スコアが足りません！');
     return;
   }
 
   state.score -= cost;
   state.upgrades[upgradeName].level++;
 
-  // 蜉ｹ譫懊ｒ驕ｩ逕ｨ
+  // 効果を適用
   switch (upgradeName) {
     case 'max':
       state.clickMax += 3 + state.upgrades.max.level;
@@ -329,33 +329,33 @@ function purchaseUpgrade(upgradeName) {
 
   updateScoreDisplay();
   updateUpgradeButtons();
-  showNotification('笨� ' + getUpgradeName(upgradeName) + ' 繧偵い繝��繧ｰ繝ｬ繝ｼ繝会ｼ�');
+  showNotification('✅ ' + getUpgradeName(upgradeName) + ' をアップグレード！');
   saveGame();
 }
 
 function getUpgradeName(key) {
   const names = {
-    max: '荳企剞蠅怜刈',
-    min: '荳矩剞蠅怜刈',
-    rate: '蛟咲紫蠑ｷ蛹�',
-    mult: '荵礼ｮ怜ｼｷ蛹�',
-    rebirth: '霆｢逕�',
-    robotSpeed: '騾溷ｺｦUP',
-    robotPower: '繝代Ρ繝ｼUP',
-    critical: '繧ｯ繝ｪ繝�ぅ繧ｫ繝ｫ',
-    bonus: '繝懊�繝翫せ',
+    max: '上限増加',
+    min: '下限増加',
+    rate: '倍率強化',
+    mult: '乗算強化',
+    rebirth: '転生',
+    robotSpeed: '速度UP',
+    robotPower: 'パワーUP',
+    critical: 'クリティカル',
+    bonus: 'ボーナス',
   };
   return names[key] || key;
 }
 
 // ========================================
-// 霆｢逕�
+// 転生
 // ========================================
 function performRebirth() {
   state.rebirthCount++;
   state.rebirthBonus += 0.5;
 
-  // 繝ｪ繧ｻ繝�ヨ
+  // リセット
   state.score = 0;
   state.clickMin = 1;
   state.clickMax = 5;
@@ -367,21 +367,21 @@ function performRebirth() {
   state.progressStage = 0;
   state.progressTarget = 1000;
 
-  // 繧｢繝��繧ｰ繝ｬ繝ｼ繝峨Μ繧ｻ繝�ヨ�郁ｻ｢逕溘→ROBOT莉･螟厄ｼ�
+  // アップグレードリセット（転生とROBOT以外）
   ['max', 'min', 'rate', 'mult', 'critical', 'bonus'].forEach(key => {
     state.upgrades[key].level = 0;
   });
 
-  // ROBOT繧ｪ繝�
+  // ROBOTオフ
   if (state.robotActive) toggleRobot();
 
-  // 繧ｨ繝輔ぉ繧ｯ繝�
+  // エフェクト
   spawnRebirthParticles();
 
   updateScoreDisplay();
   updateUpgradeButtons();
   updateProgress();
-  showNotification('笨ｨ 霆｢逕溘＠縺ｾ縺励◆�∬ｻ｢逕溘�繝ｼ繝翫せ: x' + state.rebirthBonus.toFixed(1));
+  showNotification('✨ 転生しました！転生ボーナス: x' + state.rebirthBonus.toFixed(1));
   saveGame();
 }
 
@@ -402,7 +402,7 @@ function spawnRebirthParticles() {
 }
 
 // ========================================
-// ROBOT�郁�蜍輔け繝ｪ繝�け��
+// ROBOT（自動クリック）
 // ========================================
 function toggleRobot() {
   state.robotActive = !state.robotActive;
@@ -425,14 +425,14 @@ function toggleRobot() {
     els.robotIndicator.classList.add('on');
     els.robotIndicator.classList.remove('off');
     els.robotStateText.textContent = 'ON';
-    showNotification('､� ROBOT 襍ｷ蜍包ｼ�');
+    showNotification('🤖 ROBOT 起動！');
   } else {
     clearInterval(state.robotInterval);
     state.robotInterval = null;
     els.robotIndicator.classList.remove('on');
     els.robotIndicator.classList.add('off');
     els.robotStateText.textContent = 'OFF';
-    showNotification('､� ROBOT 蛛懈ｭ｢');
+    showNotification('🤖 ROBOT 停止');
   }
   saveGame();
 }
@@ -457,14 +457,14 @@ function restartRobot() {
 }
 
 // ========================================
-// 繝代ロ繝ｫ蛻�ｊ譖ｿ縺�
+// パネル切り替え
 // ========================================
 function switchPanel(panel) {
   els.switchPanel.classList.add('hidden');
   els.robotPanel.classList.add('hidden');
   els.shopPanel.classList.add('hidden');
 
-  // 繧ｵ繧､繝峨�繧ｿ繝ｳ縺ｮ繧｢繧ｯ繝�ぅ繝也憾諷�
+  // サイドボタンのアクティブ状態
   els.btnSwitch.classList.remove('active');
   els.btnRobot.classList.remove('active');
   els.btnShop.classList.remove('active');
@@ -489,7 +489,7 @@ function switchPanel(panel) {
 }
 
 // ========================================
-// 繧ｿ繧､繝槭�
+// タイマー
 // ========================================
 function startTimer() {
   state.timerInterval = setInterval(() => {
@@ -501,7 +501,7 @@ function startTimer() {
 }
 
 // ========================================
-// 騾夂衍
+// 通知
 // ========================================
 let notifTimeout = null;
 function showNotification(msg) {
@@ -514,7 +514,7 @@ function showNotification(msg) {
 }
 
 // ========================================
-// 繧ｻ繝ｼ繝� / 繝ｭ繝ｼ繝�
+// セーブ / ロード
 // ========================================
 function saveGame() {
   const data = {
@@ -569,9 +569,9 @@ function loadGame() {
       }
     }
 
-    // ROBOT蠕ｩ蜈�
+    // ROBOT復元
     if (data.robotActive) {
-      state.robotActive = false; // toggle縺ｧtrue縺ｫ縺吶ｋ
+      state.robotActive = false; // toggleでtrueにする
       toggleRobot();
     }
 
@@ -582,43 +582,43 @@ function loadGame() {
 }
 
 // ========================================
-// 繝｡繝九Η繝ｼ�医Μ繧ｻ繝�ヨ��
+// メニュー（リセット）
 // ========================================
 function showMenu() {
-  if (confirm('繧ｻ繝ｼ繝悶ョ繝ｼ繧ｿ繧偵Μ繧ｻ繝�ヨ縺励∪縺吶°��')) {
+  if (confirm('セーブデータをリセットしますか？')) {
     localStorage.removeItem('clickerGameSave');
     location.reload();
   }
 }
 
 // ========================================
-// 繧､繝吶Φ繝医Μ繧ｹ繝翫�
+// イベントリスナー
 // ========================================
 function init() {
-  // 繝ｭ繝ｼ繝�
+  // ロード
   const loaded = loadGame();
 
-  // 蛻晏屓陦ｨ遉ｺ譖ｴ譁ｰ
+  // 初回表示更新
   updateScoreDisplay();
   updateUpgradeButtons();
   updateProgress();
 
-  // 繧ｿ繧､繝槭�陦ｨ遉ｺ蠕ｩ蜈�
+  // タイマー表示復元
   const mins = Math.floor(state.timerSeconds / 60).toString().padStart(2, '0');
   const secs = (state.timerSeconds % 60).toString().padStart(2, '0');
   els.timerDisplay.textContent = mins + ':' + secs;
 
-  // 繧ｿ繧､繝槭�髢句ｧ�
+  // タイマー開始
   startTimer();
 
   if (loaded) {
-    showNotification('唐 繧ｻ繝ｼ繝悶ョ繝ｼ繧ｿ繧偵Ο繝ｼ繝峨＠縺ｾ縺励◆');
+    showNotification('📂 セーブデータをロードしました');
   }
 
-  // 繝｡繧､繝ｳ繧ｯ繝ｪ繝�け
+  // メインクリック
   els.mainButton.addEventListener('click', handleClick);
 
-  // 繧｢繝��繧ｰ繝ｬ繝ｼ繝峨�繧ｿ繝ｳ
+  // アップグレードボタン
   els.upgradeMax.addEventListener('click', () => purchaseUpgrade('max'));
   els.upgradeMin.addEventListener('click', () => purchaseUpgrade('min'));
   els.upgradeRate.addEventListener('click', () => purchaseUpgrade('rate'));
@@ -632,23 +632,23 @@ function init() {
   // ROBOT
   els.toggleRobot.addEventListener('click', toggleRobot);
 
-  // 繝代ロ繝ｫ蛻�ｊ譖ｿ縺�
+  // パネル切り替え
   els.btnSwitch.addEventListener('click', () => switchPanel('switch'));
   els.btnRobot.addEventListener('click', () => switchPanel('robot'));
   els.btnShop.addEventListener('click', () => switchPanel('shop'));
   els.btnMystery.addEventListener('click', () => {
-    showNotification('白 縺ｾ縺 隗｣謾ｾ縺輔ｌ縺ｦ縺�∪縺帙ｓ...');
+    showNotification('🔒 まだ解放されていません...');
   });
 
-  // 繝｡繝九Η繝ｼ
+  // メニュー
   els.menuBtn.addEventListener('click', showMenu);
 
-  // 蛻晄悄繝代ロ繝ｫ
+  // 初期パネル
   switchPanel('switch');
 
-  // 閾ｪ蜍輔そ繝ｼ繝�
+  // 自動セーブ
   setInterval(saveGame, 10000);
 }
 
-// 蛻晄悄蛹�
+// 初期化
 document.addEventListener('DOMContentLoaded', init);
