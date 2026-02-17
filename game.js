@@ -270,7 +270,7 @@ function updateProgress() {
     state.progressStage++;
     if (state.progressStage > 4) state.progressStage = 0;
     state.progressTarget = Math.floor(state.progressTarget * 1.5);
-    showNotification('🎉 ステージクリア！次の目標: ' + formatNumber(state.progressTarget));
+
   }
 
   // ドット更新
@@ -289,7 +289,7 @@ function updateProgress() {
 function purchaseUpgrade(upgradeName) {
   const cost = getCost(upgradeName);
   if (state.score < cost) {
-    showNotification('⚠️ スコアが足りません！');
+
     return;
   }
 
@@ -329,7 +329,7 @@ function purchaseUpgrade(upgradeName) {
 
   updateScoreDisplay();
   updateUpgradeButtons();
-  showNotification('✅ ' + getUpgradeName(upgradeName) + ' をアップグレード！');
+
   saveGame();
 }
 
