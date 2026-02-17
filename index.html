@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クリッカーゲーム</title>
+  <meta name="description" content="ラベンダーテーマのクリッカーゲーム。クリックしてスコアを稼ごう！">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="game-container">
+    <!-- 左パネル -->
+    <aside class="left-panel" id="leftPanel">
+      <h2 class="panel-title" id="panelTitle">SWITCH</h2>
+
+      <!-- SWITCHパネル -->
+      <div class="panel-content" id="switchPanel">
+        <button class="upgrade-btn" id="upgradeMax" data-upgrade="max">
+          <span class="upgrade-icon icon-max">
+            <span class="icon-circle">
+              <span class="icon-inner-circle"></span>
+            </span>
+            <span class="icon-symbol">⬆</span>
+          </span>
+          <span class="upgrade-label">上限増加(<span class="upgrade-level" id="maxLevel">0</span>)</span>
+          <span class="upgrade-cost" id="maxCost">10</span>
+        </button>
+        <div class="upgrade-separator"></div>
+        <button class="upgrade-btn" id="upgradeMin" data-upgrade="min">
+          <span class="upgrade-icon icon-min">
+            <span class="icon-circle">
+              <span class="icon-inner-circle"></span>
+            </span>
+            <span class="icon-symbol">⬇</span>
+          </span>
+          <span class="upgrade-label">下限増加(<span class="upgrade-level" id="minLevel">0</span>)</span>
+          <span class="upgrade-cost" id="minCost">10</span>
+        </button>
+        <div class="upgrade-separator"></div>
+        <button class="upgrade-btn" id="upgradeRate" data-upgrade="rate">
+          <span class="upgrade-icon icon-rate">
+            <span class="icon-circle">
+              <span class="icon-inner-circle"></span>
+            </span>
+            <span class="icon-symbol">∧</span>
+          </span>
+          <span class="upgrade-label">倍率強化(<span class="upgrade-level" id="rateLevel">0</span>)</span>
+          <span class="upgrade-cost" id="rateCost">50</span>
+        </button>
+        <div class="upgrade-separator"></div>
+        <button class="upgrade-btn" id="upgradeMult" data-upgrade="mult">
+          <span class="upgrade-icon icon-mult">
+            <span class="icon-circle">
+              <span class="icon-inner-circle"></span>
+            </span>
+            <span class="icon-symbol">✕</span>
+          </span>
+          <span class="upgrade-label">乗算強化(<span class="upgrade-level" id="multLevel">0</span>)</span>
+          <span class="upgrade-cost" id="multCost">200</span>
+        </button>
+        <div class="upgrade-separator"></div>
+        <button class="upgrade-btn" id="upgradeRebirth" data-upgrade="rebirth">
+          <span class="upgrade-icon icon-rebirth">
+            <svg class="rebirth-star" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z" />
+            </svg>
+          </span>
+          <span class="upgrade-label">転生(<span class="upgrade-level" id="rebirthLevel">0</span>)</span>
+          <span class="upgrade-cost" id="rebirthCost">1,000,000</span>
+        </button>
+      </div>
+
+      <!-- ROBOTパネル -->
+      <div class="panel-content hidden" id="robotPanel">
+        <button class="upgrade-btn" id="robotSpeed" data-upgrade="robotSpeed">
+          <span class="upgrade-icon icon-robot-upgrade">
+            <span class="icon-circle">
+              <span class="icon-inner-circle"></span>
+            </span>
+            <span class="icon-symbol">⚡</span>
+          </span>
+          <span class="upgrade-label">速度UP(<span class="upgrade-level" id="robotSpeedLevel">0</span>)</span>
+          <span class="upgrade-cost" id="robotSpeedCost">100</span>
+        </button>
+        <div class="upgrade-separator"></div>
+        <button class="upgrade-btn" id="robotPower" data-upgrade="robotPower">
+          <span class="upgrade-icon icon-robot-upgrade">
+            <span class="icon-circle">
+              <span class="icon-inner-circle"></span>
+            </span>
+            <span class="icon-symbol">💪</span>
+          </span>
+          <span class="upgrade-label">パワーUP(<span class="upgrade-level" id="robotPowerLevel">0</span>)</span>
+          <span class="upgrade-cost" id="robotPowerCost">150</span>
+        </button>
+        <div class="upgrade-separator"></div>
+        <div class="robot-status" id="robotStatus">
+          <span class="robot-indicator off" id="robotIndicator"></span>
+          <span>ROBOT: <strong id="robotStateText">OFF</strong></span>
+        </div>
+        <button class="toggle-robot-btn" id="toggleRobot">🤖 ROBOT ON/OFF</button>
+      </div>
+
+      <!-- SHOPパネル -->
+      <div class="panel-content hidden" id="shopPanel">
+        <button class="upgrade-btn" id="shopCritical" data-upgrade="critical">
+          <span class="upgrade-icon icon-shop-upgrade">
+            <span class="icon-circle">
+              <span class="icon-inner-circle"></span>
+            </span>
+            <span class="icon-symbol">★</span>
+          </span>
+          <span class="upgrade-label">クリティカル(<span class="upgrade-level" id="criticalLevel">0</span>)</span>
+          <span class="upgrade-cost" id="criticalCost">500</span>
+        </button>
+        <div class="upgrade-separator"></div>
+        <button class="upgrade-btn" id="shopBonus" data-upgrade="bonus">
+          <span class="upgrade-icon icon-shop-upgrade">
+            <span class="icon-circle">
+              <span class="icon-inner-circle"></span>
+            </span>
+            <span class="icon-symbol">$</span>
+          </span>
+          <span class="upgrade-label">ボーナス(<span class="upgrade-level" id="bonusLevel">0</span>)</span>
+          <span class="upgrade-cost" id="bonusCost">300</span>
+        </button>
+      </div>
+
+      <!-- ドットインジケーター -->
+      <div class="panel-dots">
+        <span class="panel-dot" data-index="0"></span>
+        <span class="panel-dot" data-index="1"></span>
+        <span class="panel-dot" data-index="2"></span>
+        <span class="panel-dot" data-index="3"></span>
+        <span class="panel-dot" data-index="4"></span>
+      </div>
+    </aside>
+
+    <!-- 中央エリア -->
+    <main class="center-area">
+      <!-- スコア表示 -->
+      <div class="score-display">
+        <span class="score-value" id="scoreDisplay">0</span>
+      </div>
+
+      <!-- メインクリックボタン -->
+      <div class="click-area">
+        <button class="main-btn" id="mainButton">
+          <span class="inner-circle"></span>
+        </button>
+        <!-- クリックエフェクト用 -->
+        <div class="click-effects" id="clickEffects"></div>
+      </div>
+
+      <!-- プログレスバー -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-dots">
+          <span class="dot" data-index="0"></span>
+          <span class="dot" data-index="1"></span>
+          <span class="dot" data-index="2"></span>
+          <span class="dot" data-index="3"></span>
+          <span class="dot" data-index="4"></span>
+        </div>
+      </div>
+    </main>
+
+    <!-- 右パネル -->
+    <aside class="right-panel">
+      <button class="menu-btn" id="menuBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+          <rect x="4" y="5" width="16" height="2.5" rx="1.25" />
+          <rect x="4" y="10.75" width="16" height="2.5" rx="1.25" />
+          <rect x="4" y="16.5" width="16" height="2.5" rx="1.25" />
+        </svg>
+      </button>
+      <button class="side-btn" id="btnSwitch" data-panel="switch">
+        <span class="side-icon-circle"></span>
+        <span>SWITCH</span>
+      </button>
+      <button class="side-btn" id="btnRobot" data-panel="robot">
+        <span class="side-icon-robot">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <rect x="7" y="9" width="10" height="8" rx="1.5" />
+            <rect x="9" y="11" width="2.5" height="2.5" rx="0.5" fill="white" />
+            <rect x="12.5" y="11" width="2.5" height="2.5" rx="0.5" fill="white" />
+            <rect x="10" y="5" width="4" height="4" rx="1" />
+            <rect x="11" y="3" width="2" height="3" />
+          </svg>
+        </span>
+        <span>ROBOT</span>
+      </button>
+      <button class="side-btn" id="btnShop" data-panel="shop">
+        <span class="side-icon-shop">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.2 14.8l.1-.2L8.1 13h7.5c.8 0 1.5-.4 1.8-1.1l3.1-5.6c.2-.3-.1-.7-.4-.7H5.2l-.7-1.5c-.1-.3-.5-.6-.8-.6H1v2h2l3.6 7.6-1.4 2.5c-.7 1.3.3 2.9 1.8 2.9h12v-2H7.4c-.1 0-.2-.1-.2-.2z" />
+          </svg>
+        </span>
+        <span>SHOP</span>
+      </button>
+      <button class="side-btn locked" id="btnMystery" data-panel="mystery">
+        <span class="side-icon-mystery">?</span>
+        <span>???</span>
+      </button>
+      <div class="timer-display" id="timerDisplay">00:00</div>
+    </aside>
+  </div>
+
+  <!-- 通知 -->
+  <div class="notification" id="notification"></div>
+
+  <script src="game.js"></script>
+</body>
+
+</html>
